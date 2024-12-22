@@ -6,7 +6,6 @@ import numpy as np
 from youbot_kinematics.youbotKineBase import YoubotKinematicBase
 from youbot_kinematics.target_data import TARGET_JOINT_POSITIONS
 
-
 class YoubotKinematicStudent(YoubotKinematicBase):
     def __init__(self):
         super(YoubotKinematicStudent, self).__init__(tf_suffix='student')
@@ -78,7 +77,44 @@ class YoubotKinematicStudent(YoubotKinematicBase):
         # For your solution to match the KDL Jacobian, z0 needs to be set [0, 0, -1] instead of [0, 0, 1], since that is how its defined in the URDF.
         # Both are correct.
         # Your code starts here ----------------------------
-        raise NotImplementedError
+        joint = [sign * angle for sign, angle in zip(
+            self.youbot_joint_readings_polarity, joint
+        )]
+
+        T_mats = [np.eye(4)]
+        for i in range(5):
+            A_i = self.standard_dh(
+                self.dh_params['a'][i],
+                self.dh_params['alpha'][i],
+                self.dh_params['d'][i],
+                self.dh_params['theta'][i] + joint[i]
+            )
+            T_next = T_mats[i] @ A_i
+            T_mats.append(T_next)
+
+        p = []
+        z = []
+        for i in range(6):
+            T0i = T_mats[i]
+            p_i = T0i[0:3, 3]
+            p.append(p_i)
+            R0i = T0i[0:3, 0:3]
+            # 注意题目说要与 KDL 一致，需要 z0 = [0, 0, -1]
+            # 对所有关节都统一用 R0i*[0,0,-1].
+
+            z_i = R0i @ np.array([0, 0, -1.0])
+            z.append(z_i)
+
+        p_end = p[5]
+
+        jacobian = np.zeros((6, 5))
+        for i in range(5):
+            # v_i = z_{i} x (p_end - p_i)
+            v_i = np.cross(z[i], (p_end - p[i]))
+            w_i = z[i]
+            jacobian[0:3, i] = v_i
+            jacobian[3:6, i] = w_i
+
         # Your code ends here ------------------------------
         assert jacobian.shape == (6, 5)
         return jacobian
@@ -98,7 +134,15 @@ class YoubotKinematicStudent(YoubotKinematicBase):
         assert len(joint) == 5
         # TODO: Implement this
         # Your code starts here ----------------------------
-        raise NotImplementedError
+        jacobian = self.get_jacobian(joint)
+
+        # check the rack
+        rank = np.linalg.matrix_rank(jacobian)
+
+        # if rank < 6, then the robot is in a singularity
+        singularity = rank < 6
+
+        return singularity
         # Your code ends here ------------------------------
         assert isinstance(singularity, bool)
         return singularity
@@ -113,6 +157,7 @@ def main(args=None):
         target_joint_angles = TARGET_JOINT_POSITIONS[i]
         target_joint_angles = target_joint_angles.tolist()
         pose = kinematic_student.forward_kinematics(target_joint_angles)
+        singularity = kinematic_student.check_singularity(target_joint_angles)
         # we would probably compute the jacobian at our current joint angles, not the target
         # but this is just to check your work
         jacobian = kinematic_student.get_jacobian(target_joint_angles)
@@ -122,6 +167,7 @@ def main(args=None):
         print(pose)
         print("jacobian")
         print(jacobian)
+        print("Is Singular:", singularity)
 
     rclpy.spin(kinematic_student)
 

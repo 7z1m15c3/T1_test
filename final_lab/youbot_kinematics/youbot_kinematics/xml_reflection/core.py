@@ -1,4 +1,4 @@
-from youbot_kinematics.xml_reflection.basics import *
+from xml_reflection.basics import *
 import sys
 import copy
 

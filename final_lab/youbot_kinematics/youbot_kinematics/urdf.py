@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-import youbot_kinematics.urdf_parser as urdf
+import urdf_parser as urdf
 
 import PyKDL as kdl
 

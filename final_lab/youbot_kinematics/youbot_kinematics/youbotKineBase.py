@@ -88,7 +88,18 @@ class YoubotKinematicBase(Node):
             up_to_joint (int, optional): Specify up to what frame you want to compute forward kinematics.
                 Defaults to 5.
         """
-        raise NotImplementedError
+        assert len(joint_readings) >= up_to_joint, "Joints readings are less than the number of joints"
+
+        T = np.eye(4)  
+        for i in range(up_to_joint):
+            a = self.dh_params['a'][i]
+            alpha = self.dh_params['alpha'][i]
+            d = self.dh_params['d'][i]
+            theta = self.dh_params['theta'][i] + joint_readings[i]  
+            T_i = self.standard_dh(a, alpha, d, theta)  # compute the transformation matrix
+            T = np.dot(T, T_i)  # multiply the transformation matrix
+
+        return T
 
     def get_jacobian(self, joint):
         """Compute Jacobian given the robot joint values. Implementation found in child classes.
@@ -99,7 +110,7 @@ class YoubotKinematicBase(Node):
 
         """
         raise NotImplementedError
-
+    
     @staticmethod
     def standard_dh(a, alpha, d, theta):
         """This function computes the homogeneous 4x4 transformation matrix T_i based on the four standard DH parameters
@@ -120,9 +131,12 @@ class YoubotKinematicBase(Node):
         A = np.zeros((4, 4))
 
         # TODO: implement a method to get the transform matrix using DH Parameters
-        raise NotImplementedError
-        assert isinstance(A, np.ndarray), "Output wasn't of type ndarray"
-        assert A.shape == (4, 4), "Output had wrong dimensions"
+        A = np.array([
+            [np.cos(theta), -np.sin(theta) * np.cos(alpha), np.sin(theta) * np.sin(alpha), a * np.cos(theta)],
+            [np.sin(theta), np.cos(theta) * np.cos(alpha), -np.cos(theta) * np.sin(alpha), a * np.sin(theta)],
+            [0, np.sin(alpha), np.cos(alpha), d],
+            [0, 0, 0, 1]
+        ])
         return A
 
     def rotmat2rodrigues(self, T):
@@ -138,7 +152,22 @@ class YoubotKinematicBase(Node):
         assert isinstance(T, np.ndarray)
 
         # TODO: Implement a method to convert from a rotation matrix to a rodrigues vector
+        # Get the quaternion representation of the rotation matrix
+        p = np.zeros(6, dtype=float)
 
-        p = np.empty(6, float)
-        raise NotImplementedError
+        theta = np.arccos((np.trace(T) - 1) / 2) 
+        if np.isclose(theta, 0):  
+            p[3:] = np.array([0, 0, 0])
+            return p
+
+        # calculate the rodrigues vector
+        r = np.array([
+            T[2, 1] - T[1, 2],
+            T[0, 2] - T[2, 0],
+            T[1, 0] - T[0, 1]
+        ]) / (2 * np.sin(theta))
+
+        rodrigues_vector = r * theta
+
+        p[3:] = rodrigues_vector
         return p
