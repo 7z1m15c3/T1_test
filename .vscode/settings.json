@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./lab1submission/transform_helpers"
+    ]
+}
