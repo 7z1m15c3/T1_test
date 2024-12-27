@@ -102,7 +102,13 @@ class YoubotKinematicStudent(YoubotKinematicBase):
             # 注意题目说要与 KDL 一致，需要 z0 = [0, 0, -1]
             # 对所有关节都统一用 R0i*[0,0,-1].
 
-            z_i = R0i @ np.array([0, 0, -1.0])
+            if i == 0:
+                # 第0关节：z轴 [0, 0, -1]
+                z_i = R0i @ np.array([0, 0, -1.0])
+            else:
+                # 其它关节：z轴 [0, 0, 1]
+                z_i = R0i @ np.array([0, 0, 1.0])
+
             z.append(z_i)
 
         p_end = p[5]

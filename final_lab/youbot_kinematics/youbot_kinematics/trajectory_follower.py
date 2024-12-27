@@ -93,6 +93,7 @@ if __name__ == '__main__':
 
 
 '''
+conda activate roboenv-py3.10
 t1: ros2 launch youbot_kinematics bringup.launch.py
 t2: ros2 run youbot_kinematics plan_trajectory
 t3: ros2 run youbot_kinematics trajectory_follower

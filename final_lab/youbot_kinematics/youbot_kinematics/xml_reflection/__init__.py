@@ -1,1 +1,1 @@
-from xml_reflection.core import *
+from youbot_kinematics.xml_reflection.core import *

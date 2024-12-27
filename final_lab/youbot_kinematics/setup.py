@@ -28,7 +28,7 @@
 #     },
 # )
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from glob import glob
 import os
 
@@ -37,13 +37,16 @@ package_name = 'youbot_kinematics'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name],
+    packages=['youbot_kinematics',
+        'youbot_kinematics.xml_reflection', ],
     data_files=[
         ('share/ament_index/resource_index/packages',
          ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/config', ['config/viz.rviz']),
         ('share/' + package_name + '/launch', ['launch/bringup.launch.py'])
+        (os.path.join('share', package_name, 'youbot_description', 'urdfs'), 
+        glob('youbot_description/urdfs/*.urdf')),  
     ],
     install_requires=['setuptools'],
     zip_safe=True,

@@ -63,7 +63,7 @@ class YoubotTrajectoryPlanning(Node):
             f"Shortest path visiting these checkpoints in order: {sorted_order}. Dist={min_dist:.3f}"
         )
 
-        num_points_between = 5
+        num_points_between = 6
         full_checkpoint_tfs = self.intermediate_tfs(sorted_order, target_cart_tf, num_points_between)
         self.get_logger().info(f"Full # of poses after interpolation: {full_checkpoint_tfs.shape[2]}")
 

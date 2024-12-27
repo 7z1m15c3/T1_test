@@ -19,9 +19,10 @@ class YoubotKinematicKDL(YoubotKinematicBase):
     def __init__(self, tf_suffix='kdl'):
         super(YoubotKinematicKDL, self).__init__(tf_suffix)
 
-        urdf_path = "./././youbot_description/urdfs/youbot.urdf"
-
-        robot = URDF.from_xml_file(urdf_path)
+        urdf_path = get_package_share_directory("youbot_description")
+        print(urdf_path)
+        urdf_name_path = os.path.join(urdf_path, "urdfs", "youbot.urdf")
+        robot = URDF.from_xml_file(urdf_name_path)
 
         (ok, self.kine_tree) = treeFromUrdfModel(robot)
 
